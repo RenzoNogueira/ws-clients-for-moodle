@@ -5,7 +5,7 @@ Demostração de cliente de serviço web para o moddle versão 3.11.4+
 This project is free. I accept contributions.<br>
 Este projeto é gratuito. Aceito contribuições.
 
-# General structure of the object to be sent
+# General structure of the object to be sent to Moodle
 <pre><code>
 list of (  <br>
   object { <br>
