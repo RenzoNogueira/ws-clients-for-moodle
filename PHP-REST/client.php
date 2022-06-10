@@ -1,7 +1,10 @@
 <?php
 // Este não é um arquivo oficial do moodle 3.11.4+
 
-require_once('./user.php');
+require_once('../autoload.php');
+require_once Moodle\PhpRest\User;
+require_once Moodle\Client\Client;
+require_once Moodle\PhpRest\Curl;
 
 /**
  * REST client for 3.11.4+
@@ -14,8 +17,8 @@ require_once('./user.php');
  */
 
 /// SETUP - NEED TO BE CHANGED
-$token = 'c27c852b1318c37bc903310e691129cd';
-$domainname = 'yourmoodle.com.br';
+$token = $CLIENT->getToken();
+$domainname = $CLIENT->getDomainname();
 $functionname = 'core_user_create_users';
 
 // REST RETURNED VALUES FORMAT
@@ -54,11 +57,9 @@ $clientParams = new UserProcessor($users);
 header('Content-Type: text/xml');
 $serverurl = $domainname . '/webservice/rest/server.php' . '?wstoken=' . $token . '&wsfunction=' . $functionname;
 
-require_once('./curl.php');
-$curl = new curl;
-
 // Set up and execute the curl process
 // Configura e executa o processo curl
+$curl = new curl;
 $restformat = ($restformat == 'json') ? '&moodlewsrestformat=' . $restformat : '';
 $resp = $curl->post($serverurl . $restformat, $clientParams->getUserDataUrl($serverurl));
 print_r($resp->text);
