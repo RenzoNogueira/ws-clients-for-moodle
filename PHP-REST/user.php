@@ -21,7 +21,28 @@ class UserProcessor
      */
     public function __construct($arrayDataUser)
     {
-        $this->userData = $this->proccessUrl($arrayDataUser);
+        // List the fields you will receive here
+        // Verific the array is not empty
+        $this->userData = new stdClass();
+        $this->userData->username = $arrayDataUser->username;
+        $this->userData->password = $arrayDataUser->password;
+        $this->userData->firstname = $arrayDataUser->firstname;
+        $this->userData->lastname = $arrayDataUser->lastname;
+        $this->userData->email = $arrayDataUser->email;
+        $this->userData->auth = isset($arrayDataUser->auth) ? $arrayDataUser->auth : 'manual';
+        $this->userData->idnumber = isset($arrayDataUser->idnumber) ? $arrayDataUser->idnumber : '';
+        $this->userData->lang = isset($arrayDataUser->lang) ? $arrayDataUser->lang : 'pt_br';
+        $this->userData->timezone = isset($arrayDataUser->timezone) ? $arrayDataUser->timezone : '-12.5';
+        $this->userData->mailformat = isset($arrayDataUser->mailformat) ? $arrayDataUser->mailformat : 0;
+        $this->userData->description = isset($arrayDataUser->description) ? $arrayDataUser->description : '';
+        $this->userData->city = isset($arrayDataUser->city) ? $arrayDataUser->city : '';
+        $this->userData->customfields = isset($arrayDataUser->customfields) ? $arrayDataUser->customfields : '';
+
+        // Add the obj to the array
+        $this->userData = [$this->userData];
+
+        // Convert the array to a string
+        $this->userData = $this->proccessUrl($this->userData);
     }
 
     /**

@@ -6,60 +6,76 @@ require_once Moodle\PhpRest\User;
 require_once Moodle\Client\Client;
 require_once Moodle\PhpRest\Curl;
 
-/**
- * REST client for 3.11.4+
- * Return JSON or XML format
- * 
- * Moodle user creation
- * 
- * @authorr Renzo Nogueira
- * @version 1.0
- */
+/*
+* CreateUser
+* Return String
+* 
+* Sends request to Rest Moodle to perform such action
+* 
+* @authorr Renzo Nogueira
+* @version 1.0
+*/
+class CreateUser
+{
+    private $token;
+    private $domainname;
+    private $functionname;
+    private $restformat;
+    private $users;
+    private $clientParams;
+    private $serverurl;
+    private $curl;
 
-/// SETUP - NEED TO BE CHANGED
-$token = $CLIENT->getToken();
-$domainname = $CLIENT->getDomainname();
-$functionname = 'core_user_create_users';
+    /*
+    * CreateUser constructor.
+    * @param $token
+    * @param $domainname
+    * @param $functionname
+    * @param $restformat
+    * @param $users
+    */
+    public function __construct($token, $domainname, $users, $restformat = 'json',  $functionname  = 'core_user_create_users')
+    {
+        $this->token = $token;
+        $this->domainname = $domainname;
+        $this->functionname = $functionname;
+        $this->restformat = $restformat;
+        $this->users = $users;
+        $this->curl = new curl;
 
-// REST RETURNED VALUES FORMAT
-$restformat = 'xml'; //Also possible in Moodle 2.2 and later: 'json'
-//Setting it to 'json' will fail all calls on earlier Moodle version
+        $this->clientParams = new UserProcessor($this->users);
+        $this->serverurl = $this->domainname . '/webservice/rest/server.php' . '?wstoken=' . $this->token . '&wsfunction=' . $this->functionname;
+        $this->restformat = '&moodlewsrestformat=' . $this->restformat;
+    }
 
-// PARAMETERS - NEED TO BE CHANGED IF YOU CALL A DIFFERENT FUNCTION
-// PARÂMETROS - PRECISAM SER ALTERADOS SE VOCÊ CHAMA UMA FUNÇÃO DIFERENTE
-$user1 = new stdClass();
-$user1->username = 'testeuser1';
-$user1->password = 'PasswordTesteOfUser1';
-$user1->firstname = 'Testfirstname2';
-$user1->lastname = 'Testlastname2';
-$user1->email = 'email2user@moodle.com';
-$user1->auth = 'manual';
-$user1->idnumber = '';
-$user1->lang = 'en';
-$user1->timezone = '-12.5';
-$user1->mailformat = 0;
-$user1->description = '';
-$user1->city = '';
-$user1->customfields = [ // Custom field example
-    [
-        'type' => 'cpf_',
-        'value' => '123.456.789-01'
-    ]
-];
-$user1->country = 'BR';
-$users = array($user1);
+    /*
+    * post
+    * Return XML or JSON format
+    *
+    * @return string
+    */
+    public function post()
+    {
+        $resp = $this->curl->post($this->serverurl . $this->restformat, $this->clientParams->getUserDataUrl($this->serverurl));
+        // se exitir erro, retorna o erro exception
+        // Converte a string em objeto e retorna o erro
+        $resp = json_decode($resp);
+        return isset($resp->exception) !== false ? json_encode([$resp->exception, $resp->debuginfo, $resp->message]) : json_encode($resp);
+    }
+}
 
-// Converting the array to a string
-$clientParams = new UserProcessor($users);
+if (isset($_POST['user'])) {
+    $user = new stdClass();
+    // List the fields you will receive here
+    $user->username = $_POST["user"]["username"];
+    $user->password = $_POST["user"]["password"];
+    $user->firstname = $_POST["user"]["firstname"];
+    $user->lastname = $_POST["user"]["lastname"];
+    $user->email = $_POST["user"]["email"];
+    $user->customfields = $_POST["user"]["customfields"];
 
-/// REST CALL
-// header('Content-Type: text/plain');
-header('Content-Type: text/xml');
-$serverurl = $domainname . '/webservice/rest/server.php' . '?wstoken=' . $token . '&wsfunction=' . $functionname;
-
-// Set up and execute the curl process
-// Configura e executa o processo curl
-$curl = new curl;
-$restformat = ($restformat == 'json') ? '&moodlewsrestformat=' . $restformat : '';
-$resp = $curl->post($serverurl . $restformat, $clientParams->getUserDataUrl($serverurl));
-print_r($resp->text);
+    $token = $CLIENT->getToken(); // Get token from Moodle
+    $domainname = $CLIENT->getDomainname(); // Get domain name from Moodle
+    $createUser = new CreateUser($token, $domainname, $user); // Create user
+    print($createUser->post()); // Post user
+}
