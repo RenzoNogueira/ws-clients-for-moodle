@@ -6,6 +6,7 @@ This project is free. I accept contributions.<br>
 Este projeto é gratuito. Aceito contribuições.
 
 # General structure of the object to be sent to Moodle
+<h3>core_user_create_users</h3>
 <pre><code>
 list of (  <br>
   object { <br>
