@@ -74,8 +74,8 @@ if (isset($_POST['user'])) {
     $user->email = $_POST["user"]["email"];
     $user->customfields = $_POST["user"]["customfields"];
 
-    $token = $CLIENT->getToken(); // Get token from Moodle
-    $domainname = $CLIENT->getDomainname(); // Get domain name from Moodle
+    $token = $CLIENT_WS->getToken(); // Get token from Moodle
+    $domainname = $CLIENT_WS->getDomainname(); // Get domain name from Moodle
     $createUser = new CreateUser($token, $domainname, $user); // Create user
     print($createUser->post()); // Post user
 }

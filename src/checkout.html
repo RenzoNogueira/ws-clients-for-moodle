@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <title>Accept a payment</title>
+    <meta name="description" content="A demo of a payment on Stripe" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="checkout.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://js.stripe.com/v3/" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js" integrity="sha512-pHVGpX7F/27yZ0ISY+VVjyULApbDlD0/X0rgGbTqCE7WFW5MezNTWG/dnhtbBuICzsd0WQPgpE4REBLv+UqChw==" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/274af9ab8f.js" defer crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.0-alpha.13/vue.global.prod.js" integrity="sha512-4jHEyWW69WfIRNqw8pKKnB+uMni1VEpZqzDioNfGcNSji+e6vPILJifbCMjUWpkbnpO+qHj0ZT5TDg/HY+t6Dw==" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="checkout.js" defer></script>
+</head>
+
+<body>
+    <!-- Display a payment form -->
+    <main id="app">
+        <div v-if="!paymentSucceeded">
+            <div class="container mt-5 d-flex flex-column justify-content-center">
+                <div class="d-flex flex-row justify-content-center">
+                    <div @click="page = 0" :class="{'btn-primary shadow active': page === 0, 'step-ok': steps.cadastro }" class="btn btn-ligth border p-4 m-3 btn-page position-relative">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div @click="page = 1" :class="{'btn-primary shadow active': page === 1 }" class="btn btn-ligth border p-4 m-3 btn-page position-relative">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div @click="page = 2" :class="{'btn-primary shadow active': page === 2 }" class="btn btn-ligth border p-4 m-3 btn-page position-relative">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                <div>
+                    <div id="signin" v-show="page === 0">
+                        <div class="row d-flex justify-content-center px-4">
+                            <form class="form-signin row">
+                                <!-- Usuário -->
+                                <div class="form-label-group col-12 col-md-6">
+                                    <small class="form-text text-muted">Nome de usuário</small>
+                                    <input type="text" id="username" class="form-control" placeholder="Usuário" v-model="user.username" required autofocus>
+                                </div>
+                                <!-- Nome -->
+                                <div class="form-label-group col-12 col-md-6 mt-3 mt-md-0">
+                                    <small class="form-text text-muted">Nome</small>
+                                    <input type="text" id="firstname" class="form-control" placeholder="Nome" v-model="user.firstName" required>
+                                </div>
+                                <div class="form-label-group col-12 col-md-6 mt-3">
+                                    <small class="form-text text-muted">Sobrenome</small>
+                                    <input type="text" id="lastname" class="form-control" placeholder="Sobrenome" v-model="user.lastName" required>
+                                </div>
+                                <!-- CPF -->
+                                <div class="form-label-group col-md-6 mt-3">
+                                    <small class="form-text text-muted">CPF</small>
+                                    <input type="text" id="cpf" class="form-control" placeholder="CPF" v-model="user.cpf" data-mask="999.999.999-99" required>
+                                </div>
+                                <!-- Senha -->
+                                <div class="form-label-group col-12 col-md-6 mt-3">
+                                    <small class="form-text text-muted">Senha</small>
+                                    <input type="password" id="password" class="form-control" placeholder="Senha" v-model="user.password" required>
+                                </div>
+                                <!-- Confirmar senha -->
+                                <div class="form-label-group col-12 col-md-6 mt-3">
+                                    <small class="form-text text-muted">Confirmar senha</small>
+                                    <input type="password" id="confirmPassword" class="form-control" placeholder="Confirmar senha" v-model="user.confirmPassword" required>
+                                </div>
+                                <!-- Email -->
+                                <div class="form-label-group col-12 mt-3">
+                                    <small class="form-text text-muted">Email</small>
+                                    <input type="email" id="email" class="form-control" placeholder="Email" v-model="user.email" required>
+                                </div>
+                            </form>
+                            <!-- Botão avançar -->
+                            <div class="col-12 col-md-6 mt-3">
+                                <button type="button" class="btn btn-primary w-100 btn-block" @click="page++">Avançar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="payment" v-show="page === 1">
+                    <form id="payment-form" class="row d-flex justify-content-center">
+                        <div class="col-12" id="payment-element">
+                            <!--Stripe.js injects the Payment Element-->
+                        </div>
+                        <div class="col-12 col-md-6 mt-3">
+                            <button type="button" class="btn btn-primary w-100 btn-block" @click="page++">Avançar</button>
+                        </div>
+                        <div id="payment-message" class="hidden"></div>
+                    </form>
+                </div>
+                <!-- Confirmação de compra -->
+                <div id="confirmation" v-show="page === 2">
+                    <div class="row d-flex justify-content-center px-4">
+                        <div class="col-12 col-md-6 mt-3">
+                            <h3>Confirmação de compra</h3>
+                            <p>
+                                <strong>Nome:</strong> {{ user.firstName }} {{ user.lastName }}
+                            </p>
+                        </div>
+                        <div class="col-12 col-md-6 mt-3">
+                            <h3>Pagamento</h3>
+                            <!-- <p>
+                                <strong>Nome do cartão:</strong> {{ user.card.name }}
+                            </p>
+                            <p>
+                                <strong>Número do cartão:</strong> {{ user.card.number }}
+                            </p>
+                            <p>
+                                <strong>Código de segurança:</strong> {{ user.card.cvc }}
+                            </p>
+                            <p>
+                                <strong>Validade:</strong> {{ user.card.expMonth }}/{{ user.card.expYear }}
+                            </p> -->
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center px-4">
+                        <div class="col-12 col-md-6 mt-3">
+                            <button class="btn btn-primary w-100 btn-block" @click="page = 0">Voltar</button>
+                        </div>
+                        <div class="col-12 col-md-6 mt-3">
+                            <button id="submit" class="btn btn-primary w-100 btn-block">
+                                <div class="spinner hidden" id="spinner"></div>
+                                <span id="button-text">Confirmar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-else>
+            <div class="position-relative" style="height: 100vh; width: 100vw">
+                <div class="position-absolute d-flex flex-column justify-content-center align-items-center" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <h1>Pagamento concluído!</h1>
+                    <lottie-player src="https://assets8.lottiefiles.com/packages/lf20_tnlxlkom.json" background="transparent" speed="1" style="width: 180px; height: 180px;" autoplay></lottie-player>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div class="modal fade" id="modal-alert" tabindex="-1" role="dialog" aria-labelledby="modal-alert-title" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modal-alert-title">Erro</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modal-alert-message">{{menssageAlert}}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="position-fixed d-flex flex-column justify-content-center align-items-center" style="top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; z-index: 9999;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only"></span>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
