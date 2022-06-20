@@ -16,13 +16,20 @@ createApp({
             menssageAlert: "",
             page: 0,
             user: { // Dados do formulário de cadastro
-                username: "a",
-                email: "a@a.a",
-                password: "1",
-                confirmPassword: "1",
-                firstName: "1",
-                lastName: "1",
+                username: "renzo",
+                email: "teste@mail.com",
+                password: "senha123",
+                confirmPassword: "senha123",
+                firstName: "PrimeiroNome",
+                lastName: "SegundoNome",
                 cpf: "08808512363",
+            },
+            course: {
+                id: "1",
+                name: "Curso de Teste",
+                description: "Curso de Teste",
+                price: "100",
+                image: "https://picsum.photos/200/300",
             },
             steps: { // Abas finalizadas
                 cadastro: false,
@@ -33,7 +40,7 @@ createApp({
     watch: {
         page: function(currentPage) {
             SELF = this
-            if (currentPage === 1) {
+            if (currentPage !== 0) {
                 // Verifica se todos os atributos do objeto user estão preenchidos
                 inputsUser = Object.values(SELF.user)
                 inputsUser = inputsUser.filter(item => item !== "")

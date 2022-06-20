@@ -41,6 +41,11 @@ form {
   text-align: center;
 }
 
+.btn-primary {
+  background-color: #f5803e !important;
+  border-color: #f5803e !important;
+}
+
 #payment-element {
   margin-bottom: 24px;
 }
