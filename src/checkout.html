@@ -55,7 +55,7 @@
                                 <!-- CPF -->
                                 <div class="form-label-group col-md-6 mt-3">
                                     <small class="form-text text-muted">CPF</small>
-                                    <input type="text" id="cpf" class="form-control" placeholder="CPF" v-model="user.cpf" data-mask="999.999.999-99" required>
+                                    <input type="text" id="cpf" class="form-control" placeholder="CPF" v-model="user.customFields[0].value" data-mask="999.999.999-99" required>
                                 </div>
                                 <!-- Senha -->
                                 <div class="form-label-group col-12 col-md-6 mt-3">
@@ -134,7 +134,7 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modal-alert-title">Erro</h5>
+                        <h5 class="modal-title" id="modal-alert-title">Atenção</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">

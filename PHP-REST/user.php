@@ -24,11 +24,11 @@ class UserProcessor
         // List the fields you will receive here
         // Verific the array is not empty
         $this->userData = new stdClass();
-        $this->userData->username = $arrayDataUser->username;
-        $this->userData->password = $arrayDataUser->password;
-        $this->userData->firstname = $arrayDataUser->firstname;
-        $this->userData->lastname = $arrayDataUser->lastname;
-        $this->userData->email = $arrayDataUser->email;
+        $this->userData->username = isset($arrayDataUser->username) ? $arrayDataUser->username : '';
+        $this->userData->password = isset($arrayDataUser->password) ? $arrayDataUser->password : '';
+        $this->userData->firstname = isset($arrayDataUser->firstname) ? $arrayDataUser->firstname : '';
+        $this->userData->lastname = isset($arrayDataUser->lastname) ? $arrayDataUser->lastname : '';
+        $this->userData->email = isset($arrayDataUser->email) ? $arrayDataUser->email : '';
         $this->userData->auth = isset($arrayDataUser->auth) ? $arrayDataUser->auth : 'manual';
         $this->userData->idnumber = isset($arrayDataUser->idnumber) ? $arrayDataUser->idnumber : '';
         $this->userData->lang = isset($arrayDataUser->lang) ? $arrayDataUser->lang : 'pt_br';
@@ -68,7 +68,7 @@ class UserProcessor
                 }
             }
         }
-
+        var_dump($dataUser);
         return $dataUser;
     }
 

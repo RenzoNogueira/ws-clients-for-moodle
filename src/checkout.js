@@ -22,7 +22,10 @@ createApp({
                 confirmPassword: "senha123",
                 firstName: "PrimeiroNome",
                 lastName: "SegundoNome",
-                cpf: "08808512363",
+                customFields: [{
+                    type: "cpf_",
+                    value: "08808512363"
+                }]
             },
             course: {
                 id: "1",
@@ -57,7 +60,6 @@ createApp({
         }
     },
     methods: {
-
         // Veridica os formulários
         verifyFormSignUp: function() {
             SELF = this
@@ -66,37 +68,75 @@ createApp({
             error = {
                 abaError: false,
             }
+            const ON_ERROR = function(pageError, menssageAlert) {
+                SELF.menssageAlert = menssageAlert
+                SELF.page = pageError
+                $("#modal-alert").modal("show")
+            }
             inputsUser = inputsUser.filter(item => item !== "")
             if (inputsUser.length !== Object.keys(SELF.user).length) {
                 // Abre o modal com o alerta
-                SELF.menssageAlert = "Preencha todos os campos"
-                $("#modal-alert").modal("show")
-                error.abaError = 0
+                ON_ERROR(0, "Preencha todos os campos")
                 SELF.steps.cadastro = false
             } else if (SELF.user.password !== SELF.user.confirmPassword) {
                 // Abre o modal com o alerta
-                console.log([SELF.user.password, SELF.user.confirmPassword])
-                SELF.menssageAlert = "As senhas não conferem"
-                $("#modal-alert").modal("show")
-                error.abaError = 0
+                ON_ERROR(0, "As senhas não conferem")
                 SELF.steps.cadastro = false
-            } else if (!SELF.cpfValidation(SELF.user.cpf)) {
+            } else if (!SELF.cpfValidation(SELF.user.customFields[0].value)) {
                 // Abre o modal com o alerta
-                SELF.menssageAlert = "CPF inválido"
-                $("#modal-alert").modal("show")
-                error.abaError = 0
+                ON_ERROR(0, "CPF inválido")
+                SELF.steps.cadastro = false
+            } else if (!SELF.emailValidation(SELF.user.email)) {
+                // Valida o e-mail
+                // Abre o modal com o alerta
+                ON_ERROR(0, "E-mail inválido")
                 SELF.steps.cadastro = false
             } else {
-                // Valida o e-mail
-                if (!SELF.emailValidation(SELF.user.email)) {
-                    // Abre o modal com o alerta
-                    SELF.menssageAlert = "E-mail inválido"
-                    $("#modal-alert").modal("show")
-                    error.abaError = 0
-                    SELF.steps.cadastro = false
-                }
+                // Efetua post para verificar se o nome de usuário já existe
+                $.post("../PHP-REST/actions.php", {
+                    user: SELF.user
+                }).done(function(data) {
+                    data = JSON.parse(data)
+                    if (!data[0].id) {
+                        switch (data[0]) {
+                            case "invalid_parameter_exception":
+                                if ((error = data[1].split(":"))[0] == "Username already exists") {
+                                    ON_ERROR(0, `O nome de usuário ${SELF.user.username} já existe`)
+                                    SELF.steps.cadastro = false
+                                }
+                                break;
+                            case "moodle_exception": // Erro interno do moodle
+                                // Convert data[2] de html em string
+                                data[2] = data[2].replace(/<[^>]*>/g, '')
+                                data[2] = data[2].replace(/error\//g, '')
+                                ON_ERROR(0, data[2])
+                                SELF.steps.cadastro = false
 
+                        }
+                    }
+                    if (error.abaError !== false) SELF.page = error.abaError
+                })
             }
+            //  else if ($("#Field-numberInput").val().length !== 16) {
+            //     // Abre o modal com o alerta
+            //     SELF.menssageAlert = "Número de cartão inválido"
+            //     $("#modal-alert").modal("show")
+            //     error.abaError = 1
+            //     SELF.steps.cadastro = false
+            // } else if ($("#Field-expiryInput").val().length !== 5) {
+            //     // Abre o modal com o alerta
+            //     SELF.menssageAlert = "Data de expiração inválida"
+            //     $("#modal-alert").modal("show")
+            //     error.abaError = 1
+            //     SELF.steps.cadastro = false
+            // } else if ($("#Field-cvcInput").val().length < 3) {
+            //     // Abre o modal com o alerta
+            //     SELF.menssageAlert = "CVC inválido"
+            //     $("#modal-alert").modal("show")
+            //     error.abaError = 1
+            //     SELF.steps.cadastro = false
+
+            // }
 
             if (error.abaError !== false) SELF.page = error.abaError
         },
@@ -223,6 +263,24 @@ createApp({
         emailValidation: function(email) {
             var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{1,}))$/;
             return re.test(String(email).toLowerCase());
+        },
+
+        // Envia o formulário
+        submitForm: function(e) {
+            SELF = this
+            $.post("../PHP-REST/actions.php", {
+                user: SELF.user
+            }).done(function(data) {
+                console.log(data)
+                if (data.status == "success") {
+                    SELF.menssageAlert = "Cadastro realizado com sucesso"
+                    $("#modal-alert").modal("show")
+                    SELF.steps.cadastro = false
+                } else {
+                    SELF.menssageAlert = "Erro ao realizar o cadastro"
+                    $("#modal-alert").modal("show")
+                }
+            })
         }
 
     },
@@ -241,8 +299,8 @@ createApp({
             // Mask CPF
             $('#cpf').mask('000.000.000-00', { reverse: true });
             $("#submit").click(function() {
-                console.log("clicked");
-                $("#payment-form").submit();
+                SELF.submitForm();
+                // $("#payment-form").submit(); // Enviar o formulário apenas se puder cadastrar usuário
             });
         }
 
