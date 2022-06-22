@@ -18,44 +18,26 @@ createApp({
             user: { // Dados do formulário de cadastro
                 username: "renzo",
                 email: "teste@mail.com",
-                password: "senha123",
-                confirmPassword: "senha123",
-                firstName: "PrimeiroNome",
-                lastName: "SegundoNome",
-                customFields: [{
+                password: "EVOLUE123",
+                firstname: "PrimeiroNome",
+                lastname: "SegundoNome",
+                customfields: [{
                     type: "cpf_",
-                    value: "08808512363"
+                    value: "088.085.123-63"
                 }]
             },
             course: {
-                id: "1",
+                id: [{ id: "price_1Kv3ZkI4YwwPzrijvkvk9fc0" }], // Id do produto
                 name: "Curso de Teste",
                 description: "Curso de Teste",
                 price: "100",
                 image: "https://picsum.photos/200/300",
-            },
-            steps: { // Abas finalizadas
-                cadastro: false,
-                payment: false,
-            },
+            }
         }
     },
     watch: {
         page: function(currentPage) {
             SELF = this
-            if (currentPage !== 0) {
-                // Verifica se todos os atributos do objeto user estão preenchidos
-                inputsUser = Object.values(SELF.user)
-                inputsUser = inputsUser.filter(item => item !== "")
-                if (inputsUser.length === Object.keys(SELF.user).length) {
-                    SELF.steps.cadastro = true
-                } else {
-                    SELF.steps.cadastro = false
-                }
-            } else if (currentPage === 0) {
-                // SELF.steps.cadastro = false
-                // SELF.steps.payment = true
-            }
             SELF.verifyFormSignUp()
         }
     },
@@ -77,74 +59,54 @@ createApp({
             if (inputsUser.length !== Object.keys(SELF.user).length) {
                 // Abre o modal com o alerta
                 ON_ERROR(0, "Preencha todos os campos")
-                SELF.steps.cadastro = false
-            } else if (SELF.user.password !== SELF.user.confirmPassword) {
-                // Abre o modal com o alerta
-                ON_ERROR(0, "As senhas não conferem")
-                SELF.steps.cadastro = false
-            } else if (!SELF.cpfValidation(SELF.user.customFields[0].value)) {
+            } else if (!SELF.cpfValidation(SELF.user.customfields[0].value)) {
                 // Abre o modal com o alerta
                 ON_ERROR(0, "CPF inválido")
-                SELF.steps.cadastro = false
             } else if (!SELF.emailValidation(SELF.user.email)) {
                 // Valida o e-mail
                 // Abre o modal com o alerta
                 ON_ERROR(0, "E-mail inválido")
-                SELF.steps.cadastro = false
             } else {
                 // Efetua post para verificar se o nome de usuário já existe
-                $.post("../PHP-REST/actions.php", {
+                $.post("../core_user_get_users_by_field.php", {
                     user: SELF.user
                 }).done(function(data) {
                     data = JSON.parse(data)
-                    if (!data[0].id) {
-                        switch (data[0]) {
-                            case "invalid_parameter_exception":
-                                if ((error = data[1].split(":"))[0] == "Username already exists") {
-                                    ON_ERROR(0, `O nome de usuário ${SELF.user.username} já existe`)
-                                    SELF.steps.cadastro = false
-                                }
-                                break;
-                            case "moodle_exception": // Erro interno do moodle
-                                // Convert data[2] de html em string
-                                data[2] = data[2].replace(/<[^>]*>/g, '')
-                                data[2] = data[2].replace(/error\//g, '')
-                                ON_ERROR(0, data[2])
-                                SELF.steps.cadastro = false
-
-                        }
+                    if (data[0] !== undefined && data[0].username === SELF.user.username) {
+                        // Abre o modal com o alerta
+                        ON_ERROR(0, `O nome de usuário ${SELF.user.username} já existe`)
                     }
                     if (error.abaError !== false) SELF.page = error.abaError
                 })
             }
-            //  else if ($("#Field-numberInput").val().length !== 16) {
-            //     // Abre o modal com o alerta
-            //     SELF.menssageAlert = "Número de cartão inválido"
-            //     $("#modal-alert").modal("show")
-            //     error.abaError = 1
-            //     SELF.steps.cadastro = false
-            // } else if ($("#Field-expiryInput").val().length !== 5) {
-            //     // Abre o modal com o alerta
-            //     SELF.menssageAlert = "Data de expiração inválida"
-            //     $("#modal-alert").modal("show")
-            //     error.abaError = 1
-            //     SELF.steps.cadastro = false
-            // } else if ($("#Field-cvcInput").val().length < 3) {
-            //     // Abre o modal com o alerta
-            //     SELF.menssageAlert = "CVC inválido"
-            //     $("#modal-alert").modal("show")
-            //     error.abaError = 1
-            //     SELF.steps.cadastro = false
-
-            // }
-
             if (error.abaError !== false) SELF.page = error.abaError
+        },
+
+        // Envia o formulário
+        submitForm: function(e) {
+            SELF = this
+            $.post("../core_user_create_users.php", {
+                user: SELF.user
+            }).done(function(data) {
+                data = JSON.parse(data)
+                if (data.status == "success") { // Se o cadastro foi realizado com sucesso
+                    SELF.paymentSucceeded = true
+                } else {
+                    SELF.menssageAlert = "Erro ao realizar o cadastro"
+                    $("#modal-alert").modal("show")
+                }
+            })
+        },
+
+        saveUserToSession: function() {
+            SELF = this
+            sessionStorage.setItem("user", JSON.stringify(SELF.user))
         },
 
         initialize: async function() { // Stripe
             const SELF = this
-            items = SELF.items
-            const { clientSecret } = await fetch("../STRIPE/create.php", {
+            items = SELF.course.id
+            const { clientSecret } = await fetch("../../STRIPE/create.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ items }),
@@ -153,7 +115,7 @@ createApp({
             elements = SELF.stripe.elements({ clientSecret });
 
             const paymentElement = elements.create("payment");
-            paymentElement.mount("#payment-element");
+            if ($("#payment-element").length > 0) paymentElement.mount("#payment-element");
         },
 
         handleSubmit: async function(e) { // Stripe
@@ -164,7 +126,7 @@ createApp({
                 elements,
                 confirmParams: {
                     // Make sure to change this to your payment completion page
-                    return_url: "http://localhost/ws-clients-for-moodle/src/checkout.html",
+                    return_url: "http://localhost/ws-clients-for-moodle/src/html/checkout.html",
                     receipt_email: SELF.user.email,
                 },
             });
@@ -208,14 +170,16 @@ createApp({
 
         showMessage: function(messageText) { // Stripe
             const messageContainer = document.querySelector("#payment-message");
+            // Se existe o elemento, então exibe o texto
+            try {
+                messageContainer.classList.remove("hidden");
+                messageContainer.textContent = messageText;
 
-            messageContainer.classList.remove("hidden");
-            messageContainer.textContent = messageText;
-
-            setTimeout(function() {
-                messageContainer.classList.add("hidden");
-                messageText.textContent = "";
-            }, 4000);
+                setTimeout(function() {
+                    messageContainer.classList.add("hidden");
+                    messageText.textContent = "";
+                }, 4000);
+            } catch (error) {}
         },
 
         setLoading: function(isLoading) { // Stripe
@@ -263,48 +227,31 @@ createApp({
         emailValidation: function(email) {
             var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{1,}))$/;
             return re.test(String(email).toLowerCase());
-        },
-
-        // Envia o formulário
-        submitForm: function(e) {
-            SELF = this
-            $.post("../PHP-REST/actions.php", {
-                user: SELF.user
-            }).done(function(data) {
-                console.log(data)
-                if (data.status == "success") {
-                    SELF.menssageAlert = "Cadastro realizado com sucesso"
-                    $("#modal-alert").modal("show")
-                    SELF.steps.cadastro = false
-                } else {
-                    SELF.menssageAlert = "Erro ao realizar o cadastro"
-                    $("#modal-alert").modal("show")
-                }
-            })
         }
-
     },
 
     mounted: function() {
         SELF = this
-            // Se não existir parâmetro redirect_status na URL
-        var url = new URL(window.location.href);
-        var redirect_status = url.searchParams.get("redirect_status");
-        if (redirect_status != "succeeded") {
-            // Inicialização do Stripe
-            SELF.initialize();
-            SELF.checkStatus();
-            $("#payment-form").submit(SELF.handleSubmit);
-
-            // Mask CPF
-            $('#cpf').mask('000.000.000-00', { reverse: true });
-            $("#submit").click(function() {
-                SELF.submitForm();
-                // $("#payment-form").submit(); // Enviar o formulário apenas se puder cadastrar usuário
-            });
+        var url = new URL(window.location.href)
+        SELF.initialize() // Inicialização do Stripe
+        SELF.checkStatus()
+        $("#payment-form").submit(SELF.handleSubmit)
+        $("#submit").click(function() {
+            SELF.saveUserToSession()
+            $("#payment-form").submit() // Enviar o formulário apenas se puder cadastrar usuário
+        })
+        $("#loading").remove() // Remove o load
+        $('#cpf').mask('000.000.000-00') // Mask CPF
+        const statusPayment = new URLSearchParams(window.location.search).get('redirect_status') === 'succeeded'
+        userSesseion = sessionStorage.getItem('user')
+        if (statusPayment && userSesseion) { // Verifica se o usuário já está salvo e se o pagamento foi realizado com sucesso
+            SELF.user = JSON.parse(userSesseion)
+            SELF.submitForm()
         }
-
-        // Remove o load
-        $("#loading").remove();
+        sessionStorage.removeItem('user')
+        if (course = url.searchParams.get("c")) { // Pega o código do item pelo parâmetro da url
+            SELF.course = JSON.parse(atob(course))
+            // OBS: O código do item é baseado em base64, pois o código do item é um JSON em base64
+        }
     }
 }).mount('#app')

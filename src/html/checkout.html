@@ -24,7 +24,7 @@
         <div v-if="!paymentSucceeded">
             <div class="container mt-5 d-flex flex-column justify-content-center">
                 <div class="d-flex flex-row justify-content-center">
-                    <div @click="page = 0" :class="{'btn-primary shadow active': page === 0, 'step-ok': steps.cadastro }" class="btn btn-ligth border p-4 m-3 btn-page position-relative">
+                    <div @click="page = 0" :class="{'btn-primary shadow active': page === 0 }" class="btn btn-ligth border p-4 m-3 btn-page position-relative">
                         <i class="fas fa-user-plus"></i>
                     </div>
                     <div @click="page = 1" :class="{'btn-primary shadow active': page === 1 }" class="btn btn-ligth border p-4 m-3 btn-page position-relative">
@@ -46,29 +46,25 @@
                                 <!-- Nome -->
                                 <div class="form-label-group col-12 col-md-6 mt-3 mt-md-0">
                                     <small class="form-text text-muted">Nome</small>
-                                    <input type="text" id="firstname" class="form-control" placeholder="Nome" v-model="user.firstName" required>
+                                    <input type="text" id="firstname" class="form-control" placeholder="Nome" v-model="user.firstname" required>
                                 </div>
                                 <div class="form-label-group col-12 col-md-6 mt-3">
                                     <small class="form-text text-muted">Sobrenome</small>
-                                    <input type="text" id="lastname" class="form-control" placeholder="Sobrenome" v-model="user.lastName" required>
+                                    <input type="text" id="lastname" class="form-control" placeholder="Sobrenome" v-model="user.lastname" required>
                                 </div>
                                 <!-- CPF -->
                                 <div class="form-label-group col-md-6 mt-3">
                                     <small class="form-text text-muted">CPF</small>
-                                    <input type="text" id="cpf" class="form-control" placeholder="CPF" v-model="user.customFields[0].value" data-mask="999.999.999-99" required>
+                                    <input type="text" id="cpf" class="form-control" placeholder="CPF" v-model="user.customfields[0].value" data-mask="999.999.999-99" required>
                                 </div>
                                 <!-- Senha -->
                                 <div class="form-label-group col-12 col-md-6 mt-3">
                                     <small class="form-text text-muted">Senha</small>
-                                    <input type="password" id="password" class="form-control" placeholder="Senha" v-model="user.password" required>
-                                </div>
-                                <!-- Confirmar senha -->
-                                <div class="form-label-group col-12 col-md-6 mt-3">
-                                    <small class="form-text text-muted">Confirmar senha</small>
-                                    <input type="password" id="confirmPassword" class="form-control" placeholder="Confirmar senha" v-model="user.confirmPassword" required>
+                                    <input type="text" id="password" class="form-control" placeholder="Senha" v-model="user.password" disabled>
+                                    <small class="form-text text-muted">A senha será gerada automaticamente</small>
                                 </div>
                                 <!-- Email -->
-                                <div class="form-label-group col-12 mt-3">
+                                <div class="form-label-group col-12 col-md-6 mt-3">
                                     <small class="form-text text-muted">Email</small>
                                     <input type="email" id="email" class="form-control" placeholder="Email" v-model="user.email" required>
                                 </div>
@@ -100,10 +96,10 @@
                                 <p><strong>Curso: </strong>{{ course.name }}</p>
                                 <p><strong>Valor: </strong>R$ {{ course.price }}</p>
                             </div>
-                            <p><strong>Usuário: </strong>{{ user.username }}</p>
-                            <p><strong>Nome: </strong>{{ user.firstName }} {{ user.lastName }}</p>
-                            <p><strong>CPF: </strong>{{ user.cpf }}</p>
+                            <p><strong>Nome: </strong>{{ user.firstname }} {{ user.lastname }}</p>
+                            <p><strong>CPF: </strong>{{ user.customfields[0].value }}</p>
                             <p><strong>Email: </strong>{{ user.email }}</p>
+                            <p><strong>Usuário de Login: </strong>{{ user.username }}</p>
                         </div>
                     </div>
                     <div class="row d-flex justify-content-center px-4">
