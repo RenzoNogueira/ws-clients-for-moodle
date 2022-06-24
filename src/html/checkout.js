@@ -14,11 +14,13 @@ createApp({
             elements: null, // Stripe elements
             paymentSucceeded: false, // Flag para indicar se o pagamento foi realizado com sucesso
             menssageAlert: "",
+            // Caso o usuário já tenha conta
+            isLogged: false,
+            passwordDefault: "EVOLUE123",
             page: 0,
             user: { // Dados do formulário de cadastro
-                username: "renzo",
                 email: "teste@mail.com",
-                password: "EVOLUE123",
+                password: "",
                 firstname: "PrimeiroNome",
                 lastname: "SegundoNome",
                 customfields: [{
@@ -27,11 +29,13 @@ createApp({
                 }]
             },
             course: {
-                id: [{ id: "price_1Kv3ZkI4YwwPzrijvkvk9fc0" }], // Id do produto
-                name: "Curso de Teste",
-                description: "Curso de Teste",
+                id: 264,
+                priceId: [{ id: "price_1Kv3ZkI4YwwPzrijvkvk9fc0" }], // Id do produto
+                name: "",
                 price: "100",
-                image: "https://picsum.photos/200/300",
+                description: "Descrição do curso",
+                image: "",
+                imageDefault: "https://ead.grupoevolue.com.br/assets/img/logo/custom-logo.png",
             }
         }
     },
@@ -39,10 +43,16 @@ createApp({
         page: function(currentPage) {
             SELF = this
             SELF.verifyFormSignUp()
+        },
+        isLogged: function(isLogged) {
+            SELF = this
+            if (isLogged) {
+                SELF.user.password = ""
+            } else SELF.user.password = SELF.passwordDefault
         }
     },
     methods: {
-        // Veridica os formulários
+        // Verifica os formulários
         verifyFormSignUp: function() {
             SELF = this
                 // Verifica se todos os atributos do objeto user estão preenchidos
@@ -68,23 +78,54 @@ createApp({
                 ON_ERROR(0, "E-mail inválido")
             } else {
                 // Efetua post para verificar se o nome de usuário já existe
-                $.post("../core_user_get_users_by_field.php", {
-                    user: SELF.user
-                }).done(function(data) {
-                    data = JSON.parse(data)
-                    if (data[0] !== undefined && data[0].username === SELF.user.username) {
-                        // Abre o modal com o alerta
-                        ON_ERROR(0, `O nome de usuário ${SELF.user.username} já existe`)
-                    }
-                    if (error.abaError !== false) SELF.page = error.abaError
-                })
+                SELF.verifyUsername()
             }
             if (error.abaError !== false) SELF.page = error.abaError
+        },
+
+        // Efetua post para verificar se o nome de usuário já existe
+        verifyUsername: function() {
+            SELF = this
+            const USERNAME = SELF.user.customfields[0].value
+            $.get("../core_user_get_users_by_field.php", {
+                user: {
+                    field: 'username',
+                    values: [USERNAME]
+                }
+            }).done(function(data) {
+                data = JSON.parse(data)
+                if (data[0] !== undefined && data[0].username === USERNAME) {
+                    SELF.menssageAlert = `O CPF ${USERNAME} já está cadastrado.`
+                    SELF.page = 0
+                    $("#modal-alert").modal("show")
+                }
+            })
+        },
+
+        // Verifica se o usuário já é inscrito no curso
+        verifyUserCourse: function() {
+            SELF = this
+            $.get("../core_enrol_get_enrolled_users.php", {
+                course: {
+                    id: SELF.course.id,
+                    userid: SELF.user.id
+                }
+            }).done(function(data) {
+                data = JSON.parse(data)
+                if (data[0] !== undefined && data[0].username === SELF.user.username) {
+                    // Abre o modal com o alerta
+                    SELF.menssageAlert = `O usuário ${SELF.user.username} já está inscrito no curso`
+                    SELF.page = 0
+                    $("#modal-alert").modal("show")
+                }
+            })
         },
 
         // Envia o formulário
         submitForm: function(e) {
             SELF = this
+                // Salva o cpf como usuário
+            SELF.user.username = SELF.user.customfields[0].value
             $.post("../core_user_create_users.php", {
                 user: SELF.user
             }).done(function(data) {
@@ -98,6 +139,54 @@ createApp({
             })
         },
 
+        // Realiza a inscrição no curso
+        submitCourse: function(e) {
+            SELF = this
+            const USERNAME = SELF.user.customfields[0].value
+            $.get("../core_user_get_users_by_field.php", { // Pega o id do usuário
+                user: {
+                    field: 'username',
+                    values: [USERNAME]
+                }
+            }).done(function(data) {
+                if (data = JSON.parse(data)[0]) {
+                    SELF.user.id = data.id
+                    $.post("../enrol_manual_enrol_users.php", { // Inscreve o usuário no curso
+                        data: {
+                            courseid: SELF.course.id,
+                            userid: SELF.user.id
+                        }
+                    }).done(function(data) {
+                        console.log(data)
+                        data = JSON.parse(data)
+                        if (data == null) { // Se a inscrição foi realizada com sucesso
+                            SELF.paymentSucceeded = true
+                        } else {
+                            SELF.menssageAlert = "Erro ao realizar a inscrição"
+                            $("#modal-alert").modal("show")
+                        }
+                    })
+                }
+            })
+        },
+
+        // Pega os dados do curso
+        getCourse: function(e) {
+            SELF = this
+            $.get("../core_course_get_courses_by_field.php", {
+                course: {
+                    field: 'id',
+                    value: SELF.course.id
+                }
+            }).done(function(data) {
+                data = JSON.parse(data)
+                const COURSE = data.courses[0]
+                SELF.course.image = `../image_course.php?url=${COURSE.overviewfiles[0].fileurl}&urlDefault=${SELF.course.imageDefault}` // Executa a requisição para pegar a imagem do curso
+                SELF.course.name = COURSE.displayname
+                SELF.course.description = COURSE.summary
+            })
+        },
+
         saveUserToSession: function() {
             SELF = this
             sessionStorage.setItem("user", JSON.stringify(SELF.user))
@@ -105,7 +194,7 @@ createApp({
 
         initialize: async function() { // Stripe
             const SELF = this
-            items = SELF.course.id
+            items = SELF.course.priceId
             const { clientSecret } = await fetch("../../STRIPE/create.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -155,6 +244,7 @@ createApp({
             switch (paymentIntent.status) {
                 case "succeeded":
                     SELF.showMessage("Payment succeeded!");
+                    SELF.submitCourse()
                     break;
                 case "processing":
                     SELF.showMessage("Your payment is processing.");
@@ -233,6 +323,7 @@ createApp({
     mounted: function() {
         SELF = this
         var url = new URL(window.location.href)
+        SELF.user.password = SELF.passwordDefault // Define a senha padrão
         SELF.initialize() // Inicialização do Stripe
         SELF.checkStatus()
         $("#payment-form").submit(SELF.handleSubmit)
@@ -250,8 +341,8 @@ createApp({
         }
         sessionStorage.removeItem('user')
         if (course = url.searchParams.get("c")) { // Pega o código do item pelo parâmetro da url
-            SELF.course = JSON.parse(atob(course))
-            // OBS: O código do item é baseado em base64, pois o código do item é um JSON em base64
+            SELF.course = JSON.parse(atob(course)) // OBS: O código do item é baseado em base64, pois o código do item é um JSON em base64
         }
+        SELF.getCourse() // Pega os dados do curso
     }
 }).mount('#app')
