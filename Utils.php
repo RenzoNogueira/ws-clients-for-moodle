@@ -14,42 +14,42 @@ require_once('MoodleRest.php');
 function get_courses()
 {
 	$ws_function = 'core_course_get_courses';
-	$param = array("criteria" => array());
+	$param = ["criteria" => []];
 	return get_moodle_data($ws_function, $param);
 }
 
 function get_courses_by_field($field, $values)
 {
 	$ws_function = 'core_course_get_courses_by_field';
-	$param = array("field" => $field, "value" => $values);
+	$param = ["field" => $field, "value" => $values];
 	return get_moodle_data($ws_function, $param);
 }
 
 function create_courses($courses)
 {
 	$ws_function = 'core_course_create_courses';
-	$param = array("courses" => $courses);
+	$param = ["courses" => $courses];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function update_courses($courses)
 {
 	$ws_function = 'core_course_update_courses';
-	$param = array("courses" => $courses);
+	$param = ["courses" => $courses];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function delete_courses($courseids)
 {
 	$ws_function = 'core_course_delete_courses';
-	$param = array("courseids" => $courseids);
+	$param = ["courseids" => $courseids];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function enroll_user_course($enrolments)
 {
 	$ws_function = 'enrol_manual_enrol_users';
-	$param = array("enrolments" => $enrolments);
+	$param = ["enrolments" => $enrolments];
 	return push_data_to_moodle($ws_function, $param);
 }
 
@@ -57,28 +57,28 @@ function enroll_user_course($enrolments)
 function create_categories($course_category)
 {
 	$ws_function = 'core_course_create_categories';
-	$param = array("categories" => $course_category);
+	$param = ["categories" => $course_category];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function get_categories($criteria)
 {
 	$ws_function = 'core_course_get_categories';
-	$param = array("criteria" => $criteria);
+	$param = ["criteria" => $criteria];
 	return get_moodle_data($ws_function, $param);
 }
 
 function delete_categories($categories)
 {
 	$ws_function = 'core_course_delete_categories';
-	$param = array("categories" => $categories);
+	$param = ["categories" => $categories];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function update_categories($categories)
 {
 	$ws_function = 'core_course_update_categories';
-	$param = array("categories" => $categories);
+	$param = ["categories" => $categories];
 	return push_data_to_moodle($ws_function, $param);
 }
 
@@ -86,35 +86,40 @@ function update_categories($categories)
 function create_users($users)
 {
 	$ws_function = 'core_user_create_users';
-	$param = array("users" => $users);
+	$param = ["users" => $users];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function get_users()
 {
 	$ws_function = 'core_user_get_users';
-	$param = array("criteria" => array());
+	$param = ["criteria" => []];
 	return get_moodle_data($ws_function, $param);
+}
+
+function login_account_user($user)
+{
+	return post_login_account_user($user);
 }
 
 function get_users_by_field($field, $values)
 {
 	$ws_function = 'core_user_get_users_by_field';
-	$param = array("field" => $field, 'values' => $values);
+	$param = ["field" => $field, 'values' => $values];
 	return get_moodle_data($ws_function, $param);
 }
 
 function update_users($users)
 {
 	$ws_function = 'core_user_update_users';
-	$param = array("users" => $users);
+	$param = ["users" => $users];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function delete_users($userids)
 {
 	$ws_function = 'core_user_delete_users';
-	$param = array("userids" => $userids);
+	$param = ["userids" => $userids];
 	return push_data_to_moodle($ws_function, $param);
 }
 
@@ -122,7 +127,7 @@ function delete_users($userids)
 function assign_roles($assignments)
 {
 	$ws_function = 'core_role_assign_roles';
-	$param = array("assignments" => $assignments);
+	$param = ["assignments" => $assignments];
 	return push_data_to_moodle($ws_function, $param);
 }
 
@@ -131,35 +136,35 @@ function assign_roles($assignments)
 function get_cohorts($cohortids)
 {
 	$ws_function = 'core_cohort_get_cohorts';
-	$param = array("cohortids" => $cohortids);
+	$param = ["cohortids" => $cohortids];
 	return get_moodle_data($ws_function, $param);
 }
 
 function search_cohorts($query, $context, $includes = 'parents')
 {
 	$ws_function = 'core_cohort_search_cohorts';
-	$param = array("query" => $query, "context" => $context, "includes" => $includes);
+	$param = ["query" => $query, "context" => $context, "includes" => $includes];
 	return get_moodle_data($ws_function, $param);
 }
 
 function create_cohorts($cohorts)
 {
 	$ws_function = 'core_cohort_create_cohorts';
-	$param = array("cohorts" => $cohorts);
+	$param = ["cohorts" => $cohorts];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function update_cohorts($cohorts)
 {
 	$ws_function = 'core_cohort_update_cohorts';
-	$param = array("cohorts" => $cohorts);
+	$param = ["cohorts" => $cohorts];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function delete_cohorts($cohortids)
 {
 	$ws_function = 'core_cohort_delete_cohorts';
-	$param = array("cohortids" => $cohortids);
+	$param = ["cohortids" => $cohortids];
 	return push_data_to_moodle($ws_function, $param);
 }
 
@@ -167,21 +172,21 @@ function delete_cohorts($cohortids)
 function get_cohort_members($cohortids)
 {
 	$ws_function = 'core_cohort_get_cohort_members';
-	$param = array("cohortids" => $cohortids);
+	$param = ["cohortids" => $cohortids];
 	return get_moodle_data($ws_function, $param);
 }
 
 function add_cohort_members($members)
 {
 	$ws_function = 'core_cohort_add_cohort_members';
-	$param = array("members" => $members);
+	$param = ["members" => $members];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 function delete_cohort_members($members)
 {
 	$ws_function = 'core_cohort_delete_cohort_members';
-	$param = array("members" => $members);
+	$param = ["members" => $members];
 	return push_data_to_moodle($ws_function, $param);
 }
 
@@ -189,14 +194,14 @@ function delete_cohort_members($members)
 function create_calendar_events($events)
 {
 	$ws_function = 'core_calendar_create_calendar_events';
-	$param = array("events" => $events);
+	$param = ["events" => $events];
 	return push_data_to_moodle($ws_function, $param);
 }
 
 
 function get_key_map($data, $keyfield, $valuefield)
 {
-	$result = array();
+	$result = [];
 	foreach ($data as $d) {
 		$result[$d[$keyfield]] = $d[$valuefield];
 	}
@@ -231,4 +236,12 @@ function push_data_to_moodle($ws_function, $param)
 	$config = include('Config.php');
 	$MoodleRest = new MoodleRest($config->server_address, $config->token);
 	return $MoodleRest->request($ws_function, $param, MoodleRest::METHOD_POST);
+}
+
+// Send po
+function post_login_account_user($param)
+{
+	$config = include('Config.php');
+	$MoodleRest = new MoodleRest($config->server_address_login, $config->token);
+	return $MoodleRest->setPostMethod($param);
 }

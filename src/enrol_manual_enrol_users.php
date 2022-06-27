@@ -3,6 +3,8 @@
 require_once '../includes.php';
 require_once Moodle\Utils;
 
+header('Content-Type: application/json');
+
 if (isset($_POST['data'])) {
     $user = $_POST['data'];
     $enrolments = array(

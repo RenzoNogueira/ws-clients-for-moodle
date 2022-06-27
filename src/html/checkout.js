@@ -19,10 +19,10 @@ createApp({
             passwordDefault: "EVOLUE123",
             page: 0,
             user: { // Dados do formulário de cadastro
-                email: "teste@mail.com",
-                password: "",
-                firstname: "PrimeiroNome",
-                lastname: "SegundoNome",
+                email: "",
+                password: "EVOLUE123",
+                firstname: "",
+                lastname: "",
                 customfields: [{
                     type: "cpf_",
                     value: "088.085.123-63"
@@ -47,15 +47,15 @@ createApp({
         isLogged: function(isLogged) {
             SELF = this
             if (isLogged) {
-                SELF.user.password = ""
+                SELF.user.password = SELF.user.firstname = SELF.user.lastname = SELF.user.email = ""
+
             } else SELF.user.password = SELF.passwordDefault
         }
     },
     methods: {
         // Verifica os formulários
-        verifyFormSignUp: function() {
+        verifyFormSignUp: function() { // Verifica se todos os atributos do objeto user estão preenchidos
             SELF = this
-                // Verifica se todos os atributos do objeto user estão preenchidos
             inputsUser = Object.values(SELF.user)
             error = {
                 abaError: false,
@@ -66,38 +66,80 @@ createApp({
                 $("#modal-alert").modal("show")
             }
             inputsUser = inputsUser.filter(item => item !== "")
-            if (inputsUser.length !== Object.keys(SELF.user).length) {
+            if (inputsUser.length !== Object.keys(SELF.user).length && !SELF.isLogged ||
+                SELF.isLogged && (SELF.user.password.length === 0 || SELF.user.customfields[0].value.length === 0)) {
                 // Abre o modal com o alerta
                 ON_ERROR(0, "Preencha todos os campos")
             } else if (!SELF.cpfValidation(SELF.user.customfields[0].value)) {
                 // Abre o modal com o alerta
                 ON_ERROR(0, "CPF inválido")
-            } else if (!SELF.emailValidation(SELF.user.email)) {
+            } else if (!SELF.emailValidation(SELF.user.email) && !SELF.isLogged) {
                 // Valida o e-mail
-                // Abre o modal com o alerta
                 ON_ERROR(0, "E-mail inválido")
             } else {
                 // Efetua post para verificar se o nome de usuário já existe
-                SELF.verifyUsername()
+                if (SELF.isLogged) SELF.verifyUserLogin()
+                else SELF.verifyUsername()
+
             }
             if (error.abaError !== false) SELF.page = error.abaError
         },
 
-        // Efetua post para verificar se o nome de usuário já existe
-        verifyUsername: function() {
+        // Verifica se o nome de usuário já existe
+        verifyUsername: async function(getUser = false) {
             SELF = this
             const USERNAME = SELF.user.customfields[0].value
-            $.get("../core_user_get_users_by_field.php", {
+            const dataReturn = await $.get("../core_user_get_users_by_field.php", {
                 user: {
                     field: 'username',
                     values: [USERNAME]
                 }
             }).done(function(data) {
+                if ((Object.keys.length > 0) > 0) {
+                    // data = JSON.parse(data)
+                    if (data[0] !== undefined && data[0].username === USERNAME) {
+                        if (!getUser) {
+                            SELF.menssageAlert = `O CPF ${USERNAME} já está cadastrado.`
+                            SELF.page = 0
+                            $("#modal-alert").modal("show")
+                        } else {
+                            return data
+                        }
+                    }
+                }
+            })
+            return dataReturn
+        },
+
+        // Verifica se o usuário confere com oos dados de login do Moodle
+        verifyUserLogin: function() {
+            SELF = this
+            const USERNAME = SELF.user.customfields[0].value
+            const PASSWORD = SELF.user.password
+            $.get("../confirm_login_account_user.php", {
+                user: {
+                    username: USERNAME,
+                    password: PASSWORD
+                }
+            }).done(function(data) {
                 data = JSON.parse(data)
-                if (data[0] !== undefined && data[0].username === USERNAME) {
-                    SELF.menssageAlert = `O CPF ${USERNAME} já está cadastrado.`
+                if (data.token == undefined) {
+                    SELF.menssageAlert = "Usuário e senha não conferem"
                     SELF.page = 0
                     $("#modal-alert").modal("show")
+                } else {
+                    SELF.verifyUsername(true).then(function(data) {
+                        if ((Object.keys.length > 0) > 0) {
+                            if (data[0] !== undefined) {
+                                SELF.user.id = data[0].id
+                                SELF.user.email = data[0].email
+                                SELF.user.firstname = data[0].firstname
+                                SELF.user.lastname = data[0].lastname
+                                SELF.user.customfields = data[0].customfields
+                                SELF.isLogged = true
+                            }
+                        }
+                    })
                 }
             })
         },
@@ -129,12 +171,13 @@ createApp({
             $.post("../core_user_create_users.php", {
                 user: SELF.user
             }).done(function(data) {
-                data = JSON.parse(data)
-                if (data.status == "success") { // Se o cadastro foi realizado com sucesso
-                    SELF.paymentSucceeded = true
-                } else {
-                    SELF.menssageAlert = "Erro ao realizar o cadastro"
-                    $("#modal-alert").modal("show")
+                if (Object.keys.length > 0) {
+                    if (data.status == "success") { // Se o cadastro foi realizado com sucesso
+                        SELF.paymentSucceeded = true
+                    } else {
+                        SELF.menssageAlert = "Erro ao realizar o cadastro"
+                        $("#modal-alert").modal("show")
+                    }
                 }
             })
         },
@@ -149,23 +192,25 @@ createApp({
                     values: [USERNAME]
                 }
             }).done(function(data) {
-                if (data = JSON.parse(data)[0]) {
-                    SELF.user.id = data.id
-                    $.post("../enrol_manual_enrol_users.php", { // Inscreve o usuário no curso
-                        data: {
-                            courseid: SELF.course.id,
-                            userid: SELF.user.id
-                        }
-                    }).done(function(data) {
-                        console.log(data)
-                        data = JSON.parse(data)
-                        if (data == null) { // Se a inscrição foi realizada com sucesso
-                            SELF.paymentSucceeded = true
-                        } else {
-                            SELF.menssageAlert = "Erro ao realizar a inscrição"
-                            $("#modal-alert").modal("show")
-                        }
-                    })
+                if (Object.keys.length > 0) {
+                    if (data = data[0]) {
+                        SELF.user.id = data.id
+                        $.post("../enrol_manual_enrol_users.php", { // Inscreve o usuário no curso
+                            data: {
+                                courseid: SELF.course.id,
+                                userid: SELF.user.id
+                            }
+                        }).done(function(data) {
+                            if (Object.keys.length > 0) {
+                                if (data == null) { // Se a inscrição foi realizada com sucesso
+                                    SELF.paymentSucceeded = true
+                                } else {
+                                    SELF.menssageAlert = "Erro ao realizar a inscrição"
+                                    $("#modal-alert").modal("show")
+                                }
+                            }
+                        })
+                    }
                 }
             })
         },
@@ -179,17 +224,19 @@ createApp({
                     value: SELF.course.id
                 }
             }).done(function(data) {
-                data = JSON.parse(data)
-                const COURSE = data.courses[0]
-                SELF.course.image = `../image_course.php?url=${COURSE.overviewfiles[0].fileurl}&urlDefault=${SELF.course.imageDefault}` // Executa a requisição para pegar a imagem do curso
-                SELF.course.name = COURSE.displayname
-                SELF.course.description = COURSE.summary
+                if ((Object.keys.length > 0) > 0) {
+                    const COURSE = data.courses[0]
+                    SELF.course.image = `../image_course.php?url=${COURSE.overviewfiles[0].fileurl}&urlDefault=${SELF.course.imageDefault}` // Executa a requisição para pegar a imagem do curso
+                    SELF.course.name = COURSE.displayname
+                    SELF.course.description = COURSE.summary
+                }
             })
         },
 
         saveUserToSession: function() {
             SELF = this
             sessionStorage.setItem("user", JSON.stringify(SELF.user))
+            sessionStorage.setItem("isLogged", SELF.isLogged)
         },
 
         initialize: async function() { // Stripe
@@ -335,11 +382,16 @@ createApp({
         $('#cpf').mask('000.000.000-00') // Mask CPF
         const statusPayment = new URLSearchParams(window.location.search).get('redirect_status') === 'succeeded'
         userSesseion = sessionStorage.getItem('user')
+        SELF.isLogged = sessionStorage.getItem("isLogged") === "true"
         if (statusPayment && userSesseion) { // Verifica se o usuário já está salvo e se o pagamento foi realizado com sucesso
             SELF.user = JSON.parse(userSesseion)
-            SELF.submitForm()
+            if (!SELF.isLogged) {
+                SELF.submitForm()
+            }
+
         }
         sessionStorage.removeItem('user')
+        sessionStorage.removeItem('isLogged')
         if (course = url.searchParams.get("c")) { // Pega o código do item pelo parâmetro da url
             SELF.course = JSON.parse(atob(course)) // OBS: O código do item é baseado em base64, pois o código do item é um JSON em base64
         }

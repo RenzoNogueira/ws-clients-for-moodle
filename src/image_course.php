@@ -6,6 +6,8 @@
 */
 include_once "../Config.php";
 
+header("Content-Type: image/jpeg");
+
 $url = $_GET["url"];
 $urlDefault = $_GET["urlDefault"];
 $token = $config->token;
@@ -19,7 +21,6 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $response = curl_exec($ch);
 $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
-// header("Content-Type: image/png");
 if ($httpcode == 200) {
     echo $response;
 } else {

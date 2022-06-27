@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MoodleRest
  *
@@ -427,10 +428,10 @@ class MoodleRest
 
         $this->setUrl(
             $this->getServerAddress() .
-            '?wstoken=' . $this->getToken() .
-            '&moodlewsrestformat=' . $return_format .
-            '&wsfunction=' . $function .
-            '&' . $query_string
+                '?wstoken=' . $this->getToken() .
+                '&moodlewsrestformat=' . $return_format .
+                '&wsfunction=' . $function .
+                '&' . $query_string
         );
 
         $post_url =
@@ -445,7 +446,8 @@ class MoodleRest
             $this->debug($this->getUrl(), $function, self::METHOD_GET, $moodle_request);
         } else {
             // POST
-            $options = array('http' =>
+            $options = array(
+                'http' =>
                 array(
                     'method'  => 'POST',
                     'header'  => 'Content-type: application/x-www-form-urlencoded',
@@ -469,6 +471,29 @@ class MoodleRest
             $this->printRequest();
         }
 
+        return $this->getData();
+    }
+
+    /**
+     * setPostMethod
+     *
+     * @param array $parameters The parameters to be passed to the Moodle
+     */
+    public function setPostMethod($parameters = null)
+    {
+        $this->setMethod(self::METHOD_POST);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $this->getServerAddress());
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $parameters);
+        $result = curl_exec($curl);
+        curl_close($curl);
+        $this->setRawData($result);
+        $this->setData($result);
+        if ($this->getPrintOnRequest()) {
+            $this->printRequest();
+        }
         return $this->getData();
     }
 }

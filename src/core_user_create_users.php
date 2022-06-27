@@ -10,6 +10,8 @@
 require_once '../includes.php';
 require_once Moodle\Utils;
 
+header('Content-Type: application/json');
+
 $users = [];
 if(isset($_POST['user'])){
 	$user = $_POST['user'];

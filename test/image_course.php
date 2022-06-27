@@ -1,6 +1,6 @@
 <?php
 /*
-* image_course.php
+* image_course
 * @descripton: This file makes authentication in Moodle and returns the image of the course.
 * @author Renzo Nogueira rz.dev.br
 */

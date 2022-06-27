@@ -1,4 +1,5 @@
 <?php
+
 require_once('Utils.php');
 
 $users = array(
@@ -9,5 +10,3 @@ $users = array(
 );
 
 $result = update_users($users);
-
-?>

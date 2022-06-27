@@ -61,7 +61,9 @@
                                 <div class="form-label-group col-12 col-md-6 mt-3">
                                     <small class="form-text text-muted">Senha</small>
                                     <input :disabled="!isLogged" type="text" id="password" class="form-control" placeholder="Senha" v-model="user.password">
-                                    <small class="form-text text-muted">A senha será gerada automaticamente</small>
+                                    <small v-if="!isLogged" class="form-text text-muted">A senha será gerada automaticamente</small>
+                                    <small v-else class="form-text text-muted">Digite uma senha para continuar</small>
+
                                 </div>
                             </form>
                             <div class="d-flex flex-row justify-content-around mt-3">

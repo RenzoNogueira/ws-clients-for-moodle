@@ -3,6 +3,8 @@
 require_once '../includes.php';
 require_once Moodle\Utils;
 
+header('Content-Type: application/json');
+
 if(isset($_GET['user'])){
     $field = $_GET['user']["field"];
     $values = $_GET['user']["values"];
