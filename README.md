@@ -52,3 +52,19 @@ list of (  <br>
     }  <br>
   )}  <br>
 )</code></pre>
+
+<h3>Aditional information</h3>
+<p>
+  <a href="https://docs.moodle.org/dev/Web_services#Creating_users">Documentation of Moodle</a>
+</p>
+<br>
+<p>
+  To subscribe a student to Moodle, you must enable the manual subscription method.
+</p>
+<p>The object course to be loaded must be passed via parameter url</p>
+<p>https://yoursite/index.html?c=base64</p>
+<p>Where base64 is the base64 code of the json object course</p>
+<pre><code>
+btoa(JSON.stringify({id: 0, priceId: [{ id: "price_54654gregfk0" }], price: 100}))
+</code></pre>
+
