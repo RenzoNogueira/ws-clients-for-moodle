@@ -29,14 +29,15 @@ createApp({
                 }]
             },
             course: {
-                id: 264,
+                id: 0,
                 priceId: [{ id: "price_1Kv3ZkI4YwwPzrijvkvk9fc0" }], // Id do produto
                 name: "",
                 price: "100",
                 description: "Descrição do curso",
                 image: "",
-                imageDefault: "https://ead.grupoevolue.com.br/assets/img/logo/custom-logo.png",
-            }
+            },
+            // {id: 124, priceId: [{ id: "price_1Kv3ZkI4YwwPzrijvkvk9fc0" }], price: 146}, Exemplo de objeto com os dados do curso para carregar no parametro url
+            imageCourseDefault: "https://ead.grupoevolue.com.br/assets/img/logo/custom-logo.png",
         }
     },
     watch: {
@@ -226,7 +227,7 @@ createApp({
             }).done(function(data) {
                 if ((Object.keys.length > 0) > 0) {
                     const COURSE = data.courses[0]
-                    SELF.course.image = `../image_course.php?url=${COURSE.overviewfiles[0].fileurl}&urlDefault=${SELF.course.imageDefault}` // Executa a requisição para pegar a imagem do curso
+                    SELF.course.image = `../image_course.php?url=${COURSE.overviewfiles[0] ? COURSE.overviewfiles[0].fileurl: 'null'}&urlDefault=${SELF.imageCourseDefault}` // Executa a requisição para pegar a imagem do curso
                     SELF.course.name = COURSE.displayname
                     SELF.course.description = COURSE.summary
                 }
@@ -388,12 +389,15 @@ createApp({
             if (!SELF.isLogged) {
                 SELF.submitForm()
             }
-
         }
         sessionStorage.removeItem('user')
         sessionStorage.removeItem('isLogged')
-        if (course = url.searchParams.get("c")) { // Pega o código do item pelo parâmetro da url
+        if (sessionStorage.getItem('course')) {
+            SELF.course = JSON.parse(sessionStorage.getItem('course'))
+        } else if (course = url.searchParams.get("c")) { // Pega o código do item pelo parâmetro da url
+            sessionStorage.removeItem('course')
             SELF.course = JSON.parse(atob(course)) // OBS: O código do item é baseado em base64, pois o código do item é um JSON em base64
+            sessionStorage.setItem('course', JSON.stringify(SELF.course))
         }
         SELF.getCourse() // Pega os dados do curso
     }
